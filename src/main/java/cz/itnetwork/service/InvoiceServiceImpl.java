@@ -4,6 +4,7 @@ import cz.itnetwork.dto.InvoiceDTO;
 import cz.itnetwork.dto.InvoiceStatisticsDTO;
 import cz.itnetwork.dto.mapper.InvoiceMapper;
 import cz.itnetwork.entity.InvoiceEntity;
+import cz.itnetwork.entity.InvoiceSummary;
 import cz.itnetwork.entity.PersonEntity;
 import cz.itnetwork.entity.repository.InvoiceRepository;
 import cz.itnetwork.entity.repository.PersonRepository;
@@ -146,5 +147,11 @@ public class InvoiceServiceImpl implements InvoiceService {
         PersonEntity seller = personRepository.findById(invoiceDTO.getSeller().getId())
                 .orElseThrow(() -> new NotFoundException("Prodávající s ID " + invoiceDTO.getSeller().getId() + " nebyl nalezen."));
         invoiceEntity.setSeller(seller);
+    }
+
+    public List<InvoiceSummary> getAllInvoiceSummaries() {
+        // Použijte metodu z repozitáře, která vrací projekci
+        // Předpokládáme, že chcete jen ty ne-hidden, takže findAllByHiddenFalse()
+        return invoiceRepository.findAllByHiddenFalse();
     }
 }

@@ -1,6 +1,7 @@
 package cz.itnetwork.entity.repository;
 
 import cz.itnetwork.entity.InvoiceEntity;
+import cz.itnetwork.entity.InvoiceSummary;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -21,4 +22,6 @@ public interface InvoiceRepository  extends JpaRepository<InvoiceEntity, Long> {
     BigDecimal sumCurrentYearPricesWithoutVat();
 
     long countByHidden(boolean hidden);
+
+    List<InvoiceSummary> findAllByHiddenFalse();
 }

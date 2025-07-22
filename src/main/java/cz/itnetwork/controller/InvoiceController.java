@@ -2,6 +2,7 @@ package cz.itnetwork.controller;
 
 import cz.itnetwork.dto.InvoiceDTO;
 import cz.itnetwork.dto.InvoiceStatisticsDTO;
+import cz.itnetwork.entity.InvoiceSummary;
 import cz.itnetwork.service.InvoiceService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -21,6 +22,12 @@ public class InvoiceController {
         return invoiceService.addInvoice(invoiceDTO);
     }
 
+    @GetMapping("/invoices/summary")
+    public List<InvoiceSummary> getInvoiceSummaries() {
+        return invoiceService.getAllInvoiceSummaries();
+    }
+
+    // zvazit smazani, pokud nezyuziju
     @GetMapping("/invoices")
     public List<InvoiceDTO> getInvoices() {return invoiceService.getAll();}
 

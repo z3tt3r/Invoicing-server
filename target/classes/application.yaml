@@ -19,27 +19,27 @@ spring:
   #  show-sql: true
 
   #nastaveni pro vyvoj
-  jpa: # <-- TENTO BLOK JE NYNÍ SPRÁVNĚ ODSADEN POD 'spring:'
+  jpa:
     open-in-view: true
     hibernate:
       ddl-auto: create-drop # Toto zajistí, že se databáze smaže a znovu vytvoří
-    show-sql: true # PONECHÁNO - zobrazí SQL dotazy
+    show-sql: true #  zobrazí SQL dotazy
     defer-datasource-initialization: true # Odloží spuštění data.sql po JPA inicializaci
-    properties: # NOVÉ - detailní Hibernate logování
+    properties: # detailní Hibernate logování
       hibernate:
-        format_sql: true # NOVÉ - naformátuje SQL dotazy
-        use_sql_comments: true # NOVÉ - přidá komentáře do SQL
+        format_sql: true # naformátuje SQL dotazy
+        use_sql_comments: true # přidá komentáře do SQL
         type:
           descriptor:
             sql:
-              BasicBinder: TRACE # NOVÉ - zobrazí hodnoty parametrů
+              BasicBinder: TRACE # zobrazí hodnoty parametrů
 
-  sql: # <-- TENTO BLOK JE NYNÍ SPRÁVNĚ ODSADEN POD 'spring:'
+  sql:
     init:
       mode: always # Zajistí, že data.sql se spustí vždy
       enabled: true # Explicitně povolí spouštění SQL skriptů
 
-  jackson: # <-- TENTO BLOK JE NYNÍ SPRÁVNĚ ODSADEN POD 'spring:'
+  jackson:
     mapper:
       accept-case-insensitive-enums: true
 

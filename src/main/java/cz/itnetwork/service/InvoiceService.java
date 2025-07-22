@@ -2,6 +2,7 @@ package cz.itnetwork.service;
 
 import cz.itnetwork.dto.InvoiceDTO;
 import cz.itnetwork.dto.InvoiceStatisticsDTO;
+import cz.itnetwork.entity.InvoiceSummary;
 
 import java.util.List;
 
@@ -21,4 +22,6 @@ public interface InvoiceService {
     List<InvoiceDTO> getInvoicesBySeller(long sellerId);
 
     InvoiceStatisticsDTO getInvoiceStatistics();
+
+    List<InvoiceSummary> getAllInvoiceSummaries();
 }
