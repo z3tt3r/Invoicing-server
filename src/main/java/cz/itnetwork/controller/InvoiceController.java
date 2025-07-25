@@ -28,8 +28,8 @@ public class InvoiceController {
     }
 
     // zvazit smazani, pokud nezyuziju
-    @GetMapping("/invoices")
-    public List<InvoiceDTO> getInvoices() {return invoiceService.getAll();}
+    //@GetMapping("/invoices")
+    //public List<InvoiceDTO> getInvoices() {return invoiceService.getAll();}
 
     @GetMapping("/invoices/{invoiceId}")
     public InvoiceDTO getInvoice(@PathVariable Long invoiceId) {
@@ -41,15 +41,15 @@ public class InvoiceController {
         return invoiceService.editInvoice(invoiceId, invoiceDTO);
     }
 
-    @GetMapping("/invoices/by-buyer/{buyerId}")
-    public List<InvoiceDTO> getInvoicesByBuyer(@PathVariable Long buyerId) {
-        return invoiceService.getInvoicesByBuyer(buyerId);
-    }
+    //@GetMapping("/invoices/by-buyer/{buyerId}")
+    //public List<InvoiceDTO> getInvoicesByBuyer(@PathVariable Long buyerId) {
+    //    return invoiceService.getInvoicesByBuyer(buyerId);
+    //}
 
-    @GetMapping("/invoices/by-seller/{sellerId}")
-    public List<InvoiceDTO> getInvoicesBySeller(@PathVariable Long sellerId) {
-        return invoiceService.getInvoicesBySeller(sellerId);
-    }
+    //@GetMapping("/invoices/by-seller/{sellerId}")
+    //public List<InvoiceDTO> getInvoicesBySeller(@PathVariable Long sellerId) {
+    //    return invoiceService.getInvoicesBySeller(sellerId);
+    //}
 
     @DeleteMapping("/invoices/{invoiceId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
@@ -60,5 +60,15 @@ public class InvoiceController {
     @GetMapping("/invoices/statistics")
     public InvoiceStatisticsDTO getInvoiceStatistics() {
         return invoiceService.getInvoiceStatistics();
+    }
+
+    @GetMapping("/invoices/summary/by-buyer/{buyerId}")
+    public List<InvoiceSummary> getInvoiceSummariesByBuyer(@PathVariable Long buyerId) {
+        return invoiceService.getInvoiceSummariesByBuyer(buyerId);
+    }
+
+    @GetMapping("/invoices/summary/by-seller/{sellerId}")
+    public List<InvoiceSummary> getInvoiceSummariesBySeller(@PathVariable Long sellerId) {
+        return invoiceService.getInvoiceSummariesBySeller(sellerId);
     }
 }

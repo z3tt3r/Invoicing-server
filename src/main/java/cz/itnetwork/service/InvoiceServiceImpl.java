@@ -56,14 +56,14 @@ public class InvoiceServiceImpl implements InvoiceService {
             // Ignorujeme, pokud faktura nebyla nalezena
         }
     }
-
-    @Override
-    public List<InvoiceDTO> getAll() {
-        return invoiceRepository.findByHidden(false) // Zobrazujeme pouze ne-skryté faktury
-                .stream()
-                .map(i -> invoiceMapper.toDTO(i))
-                .collect(Collectors.toList());
-    }
+//    puvodni metoda getAll nahrazena projekci - zvazit smazani
+//    @Override
+//    public List<InvoiceDTO> getAll() {
+//        return invoiceRepository.findByHidden(false) // Zobrazujeme pouze ne-skryté faktury
+//                .stream()
+//                .map(i -> invoiceMapper.toDTO(i))
+//                .collect(Collectors.toList());
+//    }
 
     @Override
     public InvoiceDTO getInvoice(long id) {
@@ -89,22 +89,23 @@ public class InvoiceServiceImpl implements InvoiceService {
         newInvoice = invoiceRepository.save(newInvoice);
         return invoiceMapper.toDTO(newInvoice);
     }
+//    puvodni metoda nahrazena projekci - zvazit smazani
+//    @Override
+//    public List<InvoiceDTO> getInvoicesByBuyer(long buyerId) {
+//        return invoiceRepository.findByBuyer_Id(buyerId)
+//                .stream()
+//                .map(invoiceMapper::toDTO)
+//                .collect(Collectors.toList());
+//    }
 
-    @Override
-    public List<InvoiceDTO> getInvoicesByBuyer(long buyerId) {
-        return invoiceRepository.findByBuyer_Id(buyerId)
-                .stream()
-                .map(invoiceMapper::toDTO)
-                .collect(Collectors.toList());
-    }
-
-    @Override
-    public List<InvoiceDTO> getInvoicesBySeller(long sellerId) {
-        return invoiceRepository.findBySeller_Id(sellerId)
-                .stream()
-                .map(invoiceMapper::toDTO)
-                .collect(Collectors.toList());
-    }
+    //    puvodni metoda nahrazena projekci - zvazit smazani
+//    @Override
+//    public List<InvoiceDTO> getInvoicesBySeller(long sellerId) {
+//        return invoiceRepository.findBySeller_Id(sellerId)
+//                .stream()
+//                .map(invoiceMapper::toDTO)
+//                .collect(Collectors.toList());
+//    }
 
     @Override
     public InvoiceStatisticsDTO getInvoiceStatistics() {
@@ -150,8 +151,28 @@ public class InvoiceServiceImpl implements InvoiceService {
     }
 
     public List<InvoiceSummary> getAllInvoiceSummaries() {
-        // Použijte metodu z repozitáře, která vrací projekci
-        // Předpokládáme, že chcete jen ty ne-hidden, takže findAllByHiddenFalse()
         return invoiceRepository.findAllByHiddenFalse();
+    }
+
+    /**
+     * Retrieves a list of visible invoices where the specified person is the buyer,
+     * projected into a simplified InvoiceSummary format. This method is optimized
+     * for frontend list displays.
+     * @param buyerId The ID of the buyer.
+     * @return A list of InvoiceSummary objects.
+     */
+    public List<InvoiceSummary> getInvoiceSummariesByBuyer(long buyerId) {
+        return invoiceRepository.findByBuyerIdAndHiddenFalse(buyerId);
+    }
+
+    /**
+     * Retrieves a list of visible invoices where the specified person is the seller,
+     * projected into a simplified InvoiceSummary format. This method is optimized
+     * for frontend list displays.
+     * @param sellerId The ID of the seller.
+     * @return A list of InvoiceSummary objects.
+     */
+    public List<InvoiceSummary> getInvoiceSummariesBySeller(long sellerId) {
+        return invoiceRepository.findBySellerIdAndHiddenFalse(sellerId);
     }
 }

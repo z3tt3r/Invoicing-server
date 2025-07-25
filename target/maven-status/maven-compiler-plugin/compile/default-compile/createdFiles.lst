@@ -1,5 +1,6 @@
 cz/itnetwork/constant/Countries.class
 cz/itnetwork/service/PersonService.class
+cz/itnetwork/service/PersonServiceImpl$1.class
 cz/itnetwork/controller/advice/EntityNotFoundExceptionAdvice.class
 cz/itnetwork/service/InvoiceService.class
 cz/itnetwork/service/InvoiceServiceImpl.class
@@ -15,6 +16,7 @@ cz/itnetwork/entity/InvoiceEntity_.class
 cz/itnetwork/controller/PersonController.class
 cz/itnetwork/dto/InvoiceDTO.class
 cz/itnetwork/controller/InvoiceController.class
+cz/itnetwork/entity/PersonLookup.class
 cz/itnetwork/dto/mapper/InvoiceMapper.class
 cz/itnetwork/dto/PersonDTO.class
 cz/itnetwork/dto/mapper/PersonMapperImpl.class
@@ -22,3 +24,4 @@ cz/itnetwork/dto/PersonStatisticsDTO.class
 cz/itnetwork/dto/InvoiceStatisticsDTO.class
 cz/itnetwork/dto/mapper/InvoiceMapperImpl.class
 cz/itnetwork/entity/PersonEntity_.class
+cz/itnetwork/entity/InvoiceSummary.class

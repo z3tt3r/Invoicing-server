@@ -2,6 +2,7 @@ package cz.itnetwork.controller;
 
 import cz.itnetwork.dto.PersonDTO;
 import cz.itnetwork.dto.PersonStatisticsDTO;
+import cz.itnetwork.entity.PersonLookup;
 import cz.itnetwork.service.PersonService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -45,6 +46,16 @@ public class PersonController {
     @PutMapping("/persons/{personId}")
     public PersonDTO editPerson(@PathVariable Long personId, @RequestBody PersonDTO personDTO) {
         return personService.editPerson(personId, personDTO);
+    }
+
+    @GetMapping("/persons/lookup")
+    public List<PersonLookup> getAllPersonsLookup() {
+        return personService.getAllPersonsLookup();
+    }
+
+    @GetMapping("/persons/lookup/{id}")
+    public PersonLookup getPersonLookupById(@PathVariable Long id) {
+        return personService.getPersonLookupById(id);
     }
 }
 

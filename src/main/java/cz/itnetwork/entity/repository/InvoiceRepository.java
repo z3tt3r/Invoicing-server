@@ -11,9 +11,14 @@ import java.util.List;
 public interface InvoiceRepository  extends JpaRepository<InvoiceEntity, Long> {
     List<InvoiceEntity> findByHidden(boolean hidden);
 
-    List<InvoiceEntity> findByBuyer_Id(long buyerId);
+    // puvodni metody bez poziti projekce - zvazit smazani
+    // List<InvoiceEntity> findByBuyer_Id(long buyerId);
+    // List<InvoiceEntity> findBySeller_Id(long sellerId);
 
-    List<InvoiceEntity> findBySeller_Id(long sellerId);
+    // Nalezne faktury, kde je daná osoba kupujícím, a projektuje je do InvoiceSummary
+    List<InvoiceSummary> findByBuyerIdAndHiddenFalse(long buyerId);
+    // Nalezne faktury, kde je daná osoba prodávajícím, a projektuje je do InvoiceSummary
+    List<InvoiceSummary> findBySellerIdAndHiddenFalse(long sellerId);
 
     @Query("SELECT SUM(i.price) FROM invoice i WHERE i.hidden = false")
     BigDecimal sumAllTimePricesWithoutVat();
