@@ -4,12 +4,15 @@ import cz.itnetwork.dto.InvoiceDTO;
 import cz.itnetwork.dto.InvoiceStatisticsDTO;
 import cz.itnetwork.dto.mapper.InvoiceMapper;
 import cz.itnetwork.entity.InvoiceEntity;
-import cz.itnetwork.entity.InvoiceSummary;
+import cz.itnetwork.dto.InvoiceSummary;
 import cz.itnetwork.entity.PersonEntity;
 import cz.itnetwork.entity.repository.InvoiceRepository;
 import cz.itnetwork.entity.repository.PersonRepository;
 import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable; // NOVÝ IMPORT
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.webjars.NotFoundException;
 
@@ -20,11 +23,9 @@ import java.util.stream.Collectors;
 @Service
 public class InvoiceServiceImpl implements InvoiceService {
 
-    private InvoiceMapper invoiceMapper;
-
-    private InvoiceRepository invoiceRepository;
-
-    private PersonRepository personRepository;
+    private final InvoiceMapper invoiceMapper;
+    private final InvoiceRepository invoiceRepository;
+    private final PersonRepository personRepository;
 
     public InvoiceServiceImpl(InvoiceMapper invoiceMapper, InvoiceRepository invoiceRepository, PersonRepository personRepository) {
         this.invoiceMapper = invoiceMapper;
@@ -36,12 +37,8 @@ public class InvoiceServiceImpl implements InvoiceService {
     @Transactional
     public InvoiceDTO addInvoice(InvoiceDTO invoiceDTO) {
         InvoiceEntity entity = invoiceMapper.toEntity(invoiceDTO);
-
-        // Volání pomocné metody pro nastavení kupujícího a prodávajícího
         setBuyerAndSellerForInvoice(invoiceDTO, entity);
-
         entity = invoiceRepository.save(entity);
-
         return invoiceMapper.toDTO(entity);
     }
 
@@ -50,27 +47,17 @@ public class InvoiceServiceImpl implements InvoiceService {
         try {
             InvoiceEntity invoice = fetchInvoiceById(invoiceId);
             invoice.setHidden(true);
-
             invoiceRepository.save(invoice);
         } catch (NotFoundException ignored) {
             // Ignorujeme, pokud faktura nebyla nalezena
         }
     }
-//    puvodni metoda getAll nahrazena projekci - zvazit smazani
-//    @Override
-//    public List<InvoiceDTO> getAll() {
-//        return invoiceRepository.findByHidden(false) // Zobrazujeme pouze ne-skryté faktury
-//                .stream()
-//                .map(i -> invoiceMapper.toDTO(i))
-//                .collect(Collectors.toList());
-//    }
 
     @Override
     public InvoiceDTO getInvoice(long id) {
         return invoiceMapper.toDTO(fetchInvoiceById(id));
     }
 
-    //pomocna fetch metoda
     private InvoiceEntity fetchInvoiceById(long id) {
         return invoiceRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Invoice with id " + id + " wasn't found in the database."));
@@ -89,23 +76,6 @@ public class InvoiceServiceImpl implements InvoiceService {
         newInvoice = invoiceRepository.save(newInvoice);
         return invoiceMapper.toDTO(newInvoice);
     }
-//    puvodni metoda nahrazena projekci - zvazit smazani
-//    @Override
-//    public List<InvoiceDTO> getInvoicesByBuyer(long buyerId) {
-//        return invoiceRepository.findByBuyer_Id(buyerId)
-//                .stream()
-//                .map(invoiceMapper::toDTO)
-//                .collect(Collectors.toList());
-//    }
-
-    //    puvodni metoda nahrazena projekci - zvazit smazani
-//    @Override
-//    public List<InvoiceDTO> getInvoicesBySeller(long sellerId) {
-//        return invoiceRepository.findBySeller_Id(sellerId)
-//                .stream()
-//                .map(invoiceMapper::toDTO)
-//                .collect(Collectors.toList());
-//    }
 
     @Override
     public InvoiceStatisticsDTO getInvoiceStatistics() {
@@ -124,16 +94,6 @@ public class InvoiceServiceImpl implements InvoiceService {
         return new InvoiceStatisticsDTO(currentYearSum, allTimeSum, invoicesCount);
     }
 
-    // pomocna metoda pro prirazeni seller a buyer
-    /**
-     * Helper method to fetch and set buyer and seller PersonEntities for an InvoiceEntity
-     * based on the IDs provided in the InvoiceDTO.
-     *
-     * @param invoiceDTO The DTO containing buyer and seller IDs.
-     * @param invoiceEntity The InvoiceEntity to which buyer and seller should be set.
-     * @throws IllegalArgumentException if buyer or seller ID is null.
-     * @throws NotFoundException if buyer or seller PersonEntity is not found in the database.
-     */
     private void setBuyerAndSellerForInvoice(InvoiceDTO invoiceDTO, InvoiceEntity invoiceEntity) {
         if (invoiceDTO.getBuyer() == null || invoiceDTO.getBuyer().getId() == null) {
             throw new IllegalArgumentException("ID kupujícího musí být uvedeno.");
@@ -150,29 +110,147 @@ public class InvoiceServiceImpl implements InvoiceService {
         invoiceEntity.setSeller(seller);
     }
 
+    @Override
     public List<InvoiceSummary> getAllInvoiceSummaries() {
-        return invoiceRepository.findAllByHiddenFalse();
+        Specification<InvoiceEntity> spec = Specification.where(null);
+        spec = spec.and((root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("hidden"), false));
+
+        List<InvoiceEntity> entities = invoiceRepository.findAll(spec);
+        return entities.stream().map(invoiceMapper::toSummary).collect(Collectors.toList());
     }
 
-    /**
-     * Retrieves a list of visible invoices where the specified person is the buyer,
-     * projected into a simplified InvoiceSummary format. This method is optimized
-     * for frontend list displays.
-     * @param buyerId The ID of the buyer.
-     * @return A list of InvoiceSummary objects.
-     */
-    public List<InvoiceSummary> getInvoiceSummariesByBuyer(long buyerId) {
-        return invoiceRepository.findByBuyerIdAndHiddenFalse(buyerId);
+    @Override
+    public Page<InvoiceSummary> getFilteredInvoiceSummaries(
+            Pageable pageable,
+            Long buyerId,
+            Long sellerId,
+            String product,
+            BigDecimal minPrice,
+            BigDecimal maxPrice) {
+
+        Specification<InvoiceEntity> spec = Specification.where(null);
+        spec = spec.and((root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("hidden"), false));
+
+        if (buyerId != null) {
+            PersonEntity buyer = personRepository.findById(buyerId)
+                    .orElseThrow(() -> new NotFoundException("Buyer with ID " + buyerId + " not found."));
+            spec = spec.and((root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("buyer"), buyer));
+        }
+
+        if (sellerId != null) {
+            PersonEntity seller = personRepository.findById(sellerId)
+                    .orElseThrow(() -> new NotFoundException("Seller with ID " + sellerId + " not found."));
+            spec = spec.and((root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("seller"), seller));
+        }
+
+        if (product != null && !product.trim().isEmpty()) {
+            spec = spec.and((root, query, criteriaBuilder) ->
+                    criteriaBuilder.like(criteriaBuilder.lower(root.get("product")), "%" + product.toLowerCase() + "%"));
+        }
+
+        if (minPrice != null) {
+            spec = spec.and((root, query, criteriaBuilder) -> criteriaBuilder.greaterThanOrEqualTo(root.get("price"), minPrice));
+        }
+
+        if (maxPrice != null) {
+            spec = spec.and((root, query, criteriaBuilder) -> criteriaBuilder.lessThanOrEqualTo(root.get("price"), maxPrice));
+        }
+
+        // Zde voláme findAll s Pageable a vracíme rovnou Page<InvoiceSummary>
+        return invoiceRepository.findAll(spec, pageable).map(invoiceMapper::toSummary);
     }
 
-    /**
-     * Retrieves a list of visible invoices where the specified person is the seller,
-     * projected into a simplified InvoiceSummary format. This method is optimized
-     * for frontend list displays.
-     * @param sellerId The ID of the seller.
-     * @return A list of InvoiceSummary objects.
-     */
-    public List<InvoiceSummary> getInvoiceSummariesBySeller(long sellerId) {
-        return invoiceRepository.findBySellerIdAndHiddenFalse(sellerId);
+    @Override
+    public List<InvoiceSummary> getFilteredInvoiceSummaries(
+            Long buyerId,
+            Long sellerId,
+            String product,
+            BigDecimal minPrice,
+            BigDecimal maxPrice,
+            Integer limit) {
+        // Stará implementace, která vrací List a je zde ponechána pro zpětnou kompatibilitu.
+        Specification<InvoiceEntity> spec = Specification.where(null);
+        spec = spec.and((root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("hidden"), false));
+
+        if (buyerId != null) {
+            PersonEntity buyer = personRepository.findById(buyerId)
+                    .orElseThrow(() -> new NotFoundException("Buyer with ID " + buyerId + " not found."));
+            spec = spec.and((root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("buyer"), buyer));
+        }
+
+        if (sellerId != null) {
+            PersonEntity seller = personRepository.findById(sellerId)
+                    .orElseThrow(() -> new NotFoundException("Seller with ID " + sellerId + " not found."));
+            spec = spec.and((root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("seller"), seller));
+        }
+
+        if (product != null && !product.trim().isEmpty()) {
+            spec = spec.and((root, query, criteriaBuilder) ->
+                    criteriaBuilder.like(criteriaBuilder.lower(root.get("product")), "%" + product.toLowerCase() + "%"));
+        }
+
+        if (minPrice != null) {
+            spec = spec.and((root, query, criteriaBuilder) -> criteriaBuilder.greaterThanOrEqualTo(root.get("price"), minPrice));
+        }
+
+        if (maxPrice != null) {
+            spec = spec.and((root, query, criteriaBuilder) -> criteriaBuilder.lessThanOrEqualTo(root.get("price"), maxPrice));
+        }
+
+        List<InvoiceEntity> entities;
+        if (limit != null && limit > 0) {
+            Page<InvoiceEntity> pageOfEntities = invoiceRepository.findAll(spec, PageRequest.of(0, limit));
+            entities = pageOfEntities.getContent();
+        } else {
+            entities = invoiceRepository.findAll(spec);
+        }
+
+        return entities.stream().map(invoiceMapper::toSummary).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<InvoiceDTO> getInvoicesBySellerIdentificationNumber(String identificationNumber) {
+        // Původní metoda
+        List<PersonEntity> sellers = personRepository.findByIdentificationNumber(identificationNumber);
+        if (sellers.isEmpty()) {
+            return List.of();
+        }
+        List<Long> sellerIds = sellers.stream().map(PersonEntity::getId).collect(Collectors.toList());
+        List<InvoiceEntity> invoices = invoiceRepository.findBySellerIdIn(sellerIds);
+        return invoices.stream().map(invoiceMapper::toDTO).collect(Collectors.toList());
+    }
+
+    // *** NOVÁ METODA PRO STRÁNKOVÁNÍ u prodejů podle IČ ***
+    @Override
+    public Page<InvoiceDTO> getInvoicesBySellerIdentificationNumber(String identificationNumber, Pageable pageable) {
+        List<PersonEntity> sellers = personRepository.findByIdentificationNumber(identificationNumber);
+        if (sellers.isEmpty()) {
+            return Page.empty(pageable);
+        }
+        List<Long> sellerIds = sellers.stream().map(PersonEntity::getId).collect(Collectors.toList());
+        return invoiceRepository.findBySellerIdInAndHiddenFalse(sellerIds, pageable).map(invoiceMapper::toDTO);
+    }
+
+    @Override
+    public List<InvoiceDTO> getInvoicesByBuyerIdentificationNumber(String identificationNumber) {
+        // Původní metoda
+        List<PersonEntity> buyers = personRepository.findByIdentificationNumber(identificationNumber);
+        if (buyers.isEmpty()) {
+            return List.of();
+        }
+        List<Long> buyerIds = buyers.stream().map(PersonEntity::getId).collect(Collectors.toList());
+        List<InvoiceEntity> invoices = invoiceRepository.findByBuyerIdIn(buyerIds);
+        return invoices.stream().map(invoiceMapper::toDTO).collect(Collectors.toList());
+    }
+
+    // *** NOVÁ METODA PRO STRÁNKOVÁNÍ u nákupů podle IČ ***
+    @Override
+    public Page<InvoiceDTO> getInvoicesByBuyerIdentificationNumber(String identificationNumber, Pageable pageable) {
+        List<PersonEntity> buyers = personRepository.findByIdentificationNumber(identificationNumber);
+        if (buyers.isEmpty()) {
+            return Page.empty(pageable);
+        }
+        List<Long> buyerIds = buyers.stream().map(PersonEntity::getId).collect(Collectors.toList());
+        return invoiceRepository.findByBuyerIdInAndHiddenFalse(buyerIds, pageable).map(invoiceMapper::toDTO);
     }
 }

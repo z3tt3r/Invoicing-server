@@ -8,6 +8,8 @@ import cz.itnetwork.entity.PersonLookup;
 import cz.itnetwork.entity.repository.InvoiceRepository;
 import cz.itnetwork.entity.repository.PersonRepository;
 import jakarta.transaction.Transactional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -25,10 +27,10 @@ public class PersonServiceImpl implements PersonService {
 
     private InvoiceRepository invoiceRepository;
 
-    public PersonServiceImpl(PersonMapper personMapper, PersonRepository personRepository) {
+    public PersonServiceImpl(PersonMapper personMapper, PersonRepository personRepository, InvoiceRepository invoiceRepository) {
         this.personMapper = personMapper;
         this.personRepository = personRepository;
-        this.invoiceRepository = invoiceRepository;
+        this.invoiceRepository = invoiceRepository; // Opravený konstruktor pro přijetí InvoiceRepository
     }
 
     @Override
@@ -58,6 +60,14 @@ public class PersonServiceImpl implements PersonService {
                 .stream()
                 .map(personMapper::toDTO)
                 .collect(Collectors.toList());
+    }
+
+    // *** NOVÁ METODA PRO STRÁNKOVÁNÍ ***
+    @Override
+    public Page<PersonDTO> getPersons(Pageable pageable) {
+        // Volání repozitáře s Pageable a mapování na DTO
+        Page<PersonEntity> personsPage = personRepository.findByHidden(false, pageable);
+        return personsPage.map(personMapper::toDTO);
     }
 
     // region: Private methods
@@ -93,10 +103,16 @@ public class PersonServiceImpl implements PersonService {
         return personMapper.toDTO(newPerson);
     }
 
+//    @Override
+//    public List<PersonStatisticsDTO> getPersonStatistics() {
+//        // Voláme nativní query z PersonRepository
+//        return personRepository.getPersonRevenueStatistics();
+//    }
+
+    // ZMĚNA: Vrací Page a přijímá Pageable
     @Override
-    public List<PersonStatisticsDTO> getPersonStatistics() {
-        // Voláme nativní query z PersonRepository
-        return personRepository.getPersonRevenueStatistics();
+    public Page<PersonStatisticsDTO> getPersonStatistics(Pageable pageable) {
+        return personRepository.getPersonRevenueStatistics(pageable);
     }
 
     @Override

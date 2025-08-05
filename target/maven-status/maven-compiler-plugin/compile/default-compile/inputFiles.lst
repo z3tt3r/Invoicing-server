@@ -2,7 +2,6 @@
 /Users/michalmusil/IdeaProjects/invoice_starter_project/springboot_invoice_starter_project/invoice-server-starter/src/main/java/cz/itnetwork/entity/PersonLookup.java
 /Users/michalmusil/IdeaProjects/invoice_starter_project/springboot_invoice_starter_project/invoice-server-starter/src/main/java/cz/itnetwork/service/PersonServiceImpl.java
 /Users/michalmusil/IdeaProjects/invoice_starter_project/springboot_invoice_starter_project/invoice-server-starter/src/main/java/cz/itnetwork/service/InvoiceServiceImpl.java
-/Users/michalmusil/IdeaProjects/invoice_starter_project/springboot_invoice_starter_project/invoice-server-starter/src/main/java/cz/itnetwork/entity/InvoiceSummary.java
 /Users/michalmusil/IdeaProjects/invoice_starter_project/springboot_invoice_starter_project/invoice-server-starter/src/main/java/cz/itnetwork/dto/InvoiceStatisticsDTO.java
 /Users/michalmusil/IdeaProjects/invoice_starter_project/springboot_invoice_starter_project/invoice-server-starter/src/main/java/cz/itnetwork/entity/InvoiceEntity.java
 /Users/michalmusil/IdeaProjects/invoice_starter_project/springboot_invoice_starter_project/invoice-server-starter/src/main/java/cz/itnetwork/service/PersonService.java
@@ -19,4 +18,5 @@
 /Users/michalmusil/IdeaProjects/invoice_starter_project/springboot_invoice_starter_project/invoice-server-starter/src/main/java/cz/itnetwork/dto/mapper/PersonMapper.java
 /Users/michalmusil/IdeaProjects/invoice_starter_project/springboot_invoice_starter_project/invoice-server-starter/src/main/java/cz/itnetwork/dto/PersonStatisticsDTO.java
 /Users/michalmusil/IdeaProjects/invoice_starter_project/springboot_invoice_starter_project/invoice-server-starter/src/main/java/cz/itnetwork/ApplicationMain.java
+/Users/michalmusil/IdeaProjects/invoice_starter_project/springboot_invoice_starter_project/invoice-server-starter/src/main/java/cz/itnetwork/dto/InvoiceSummary.java
 /Users/michalmusil/IdeaProjects/invoice_starter_project/springboot_invoice_starter_project/invoice-server-starter/src/main/java/cz/itnetwork/controller/PersonController.java

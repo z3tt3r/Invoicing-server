@@ -1,9 +1,12 @@
 package cz.itnetwork.dto.mapper;
 
 import cz.itnetwork.dto.InvoiceDTO;
+import cz.itnetwork.dto.InvoiceSummary;
 import cz.itnetwork.dto.PersonDTO;
 import cz.itnetwork.entity.InvoiceEntity;
 import cz.itnetwork.entity.PersonEntity;
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import javax.annotation.processing.Generated;
 import org.springframework.stereotype.Component;
 
@@ -79,6 +82,37 @@ public class InvoiceMapperImpl implements InvoiceMapper {
         entity.setNote( invoiceDTO.getNote() );
     }
 
+    @Override
+    public InvoiceSummary toSummary(InvoiceEntity source) {
+        if ( source == null ) {
+            return null;
+        }
+
+        String buyerName = null;
+        String sellerName = null;
+        String buyerIdentificationNumber = null;
+        String sellerIdentificationNumber = null;
+        Long id = null;
+        String invoiceNumber = null;
+        String product = null;
+        BigDecimal price = null;
+        LocalDate issued = null;
+
+        buyerName = sourceBuyerName( source );
+        sellerName = sourceSellerName( source );
+        buyerIdentificationNumber = sourceBuyerIdentificationNumber( source );
+        sellerIdentificationNumber = sourceSellerIdentificationNumber( source );
+        id = source.getId();
+        invoiceNumber = String.valueOf( source.getInvoiceNumber() );
+        product = source.getProduct();
+        price = source.getPrice();
+        issued = source.getIssued();
+
+        InvoiceSummary invoiceSummary = new InvoiceSummary( id, invoiceNumber, product, price, issued, buyerName, sellerName, buyerIdentificationNumber, sellerIdentificationNumber );
+
+        return invoiceSummary;
+    }
+
     protected PersonDTO personEntityToPersonDTO(PersonEntity personEntity) {
         if ( personEntity == null ) {
             return null;
@@ -102,5 +136,65 @@ public class InvoiceMapperImpl implements InvoiceMapper {
         personDTO.setNote( personEntity.getNote() );
 
         return personDTO;
+    }
+
+    private String sourceBuyerName(InvoiceEntity invoiceEntity) {
+        if ( invoiceEntity == null ) {
+            return null;
+        }
+        PersonEntity buyer = invoiceEntity.getBuyer();
+        if ( buyer == null ) {
+            return null;
+        }
+        String name = buyer.getName();
+        if ( name == null ) {
+            return null;
+        }
+        return name;
+    }
+
+    private String sourceSellerName(InvoiceEntity invoiceEntity) {
+        if ( invoiceEntity == null ) {
+            return null;
+        }
+        PersonEntity seller = invoiceEntity.getSeller();
+        if ( seller == null ) {
+            return null;
+        }
+        String name = seller.getName();
+        if ( name == null ) {
+            return null;
+        }
+        return name;
+    }
+
+    private String sourceBuyerIdentificationNumber(InvoiceEntity invoiceEntity) {
+        if ( invoiceEntity == null ) {
+            return null;
+        }
+        PersonEntity buyer = invoiceEntity.getBuyer();
+        if ( buyer == null ) {
+            return null;
+        }
+        String identificationNumber = buyer.getIdentificationNumber();
+        if ( identificationNumber == null ) {
+            return null;
+        }
+        return identificationNumber;
+    }
+
+    private String sourceSellerIdentificationNumber(InvoiceEntity invoiceEntity) {
+        if ( invoiceEntity == null ) {
+            return null;
+        }
+        PersonEntity seller = invoiceEntity.getSeller();
+        if ( seller == null ) {
+            return null;
+        }
+        String identificationNumber = seller.getIdentificationNumber();
+        if ( identificationNumber == null ) {
+            return null;
+        }
+        return identificationNumber;
     }
 }

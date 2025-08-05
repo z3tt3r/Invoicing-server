@@ -5,6 +5,9 @@ import cz.itnetwork.dto.PersonStatisticsDTO;
 import cz.itnetwork.entity.PersonLookup;
 import cz.itnetwork.service.PersonService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page; // Přidán import pro Page
+import org.springframework.data.domain.Pageable; // Přidán import pro Pageable
+import org.springframework.data.web.PageableDefault; // Přidán import pro PageableDefault
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,14 +25,27 @@ public class PersonController {
         return  personService.addPerson(personDTO);
     }
 
+    // Původní metoda pro získání všech osob
+    // @GetMapping("/persons")
+    // public List<PersonDTO> getPersons() {
+    //     return personService.getAll();
+    // }
+
     @GetMapping("/persons")
-    public List<PersonDTO> getPersons() {
-        return personService.getAll();
+    public Page<PersonDTO> getPersons(@PageableDefault(size = 20) Pageable pageable) {
+        return personService.getPersons(pageable);
     }
 
+//    @GetMapping("/persons/statistics")
+//    public Page<PersonStatisticsDTO> getPersonStatistics(
+//            @PageableDefault(size = 10) Pageable pageable) {
+//        return personService.getPersonStatistics(pageable);
+//    }
+
     @GetMapping("/persons/statistics")
-    public List<PersonStatisticsDTO> getPersonStatistics() {
-        return personService.getPersonStatistics();
+    public Page<PersonStatisticsDTO> getPersonStatistics(
+            @PageableDefault(size = 10, sort = "personName") Pageable pageable) {
+        return personService.getPersonStatistics(pageable);
     }
 
     @GetMapping("/persons/{personId}")
@@ -58,4 +74,3 @@ public class PersonController {
         return personService.getPersonLookupById(id);
     }
 }
-
