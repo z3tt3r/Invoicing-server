@@ -14,23 +14,20 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 import org.webjars.NotFoundException;
-
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
 public class PersonServiceImpl implements PersonService {
 
-    private PersonMapper personMapper;
-
-    private PersonRepository personRepository;
-
-    private InvoiceRepository invoiceRepository;
+    private final PersonMapper personMapper;
+    private final PersonRepository personRepository;
+    private final InvoiceRepository invoiceRepository;
 
     public PersonServiceImpl(PersonMapper personMapper, PersonRepository personRepository, InvoiceRepository invoiceRepository) {
         this.personMapper = personMapper;
         this.personRepository = personRepository;
-        this.invoiceRepository = invoiceRepository; // Opravený konstruktor pro přijetí InvoiceRepository
+        this.invoiceRepository = invoiceRepository;
     }
 
     @Override
@@ -38,7 +35,6 @@ public class PersonServiceImpl implements PersonService {
     public PersonDTO addPerson(PersonDTO personDTO) {
         PersonEntity entity = personMapper.toEntity(personDTO);
         entity = personRepository.save(entity);
-
         return personMapper.toDTO(entity);
     }
 
@@ -46,8 +42,7 @@ public class PersonServiceImpl implements PersonService {
     public void removePerson(long id) {
         try {
             PersonEntity person = fetchPersonById(id);
-            person.setHidden(true); // Nastavení příznaku skrytí
-
+            person.setHidden(true);
             personRepository.save(person);
         } catch (NotFoundException ignored) {
             // The contract in the interface states, that no exception is thrown, if the entity is not found.
@@ -62,54 +57,48 @@ public class PersonServiceImpl implements PersonService {
                 .collect(Collectors.toList());
     }
 
-    // *** NOVÁ METODA PRO STRÁNKOVÁNÍ ***
     @Override
     public Page<PersonDTO> getPersons(Pageable pageable) {
-        // Volání repozitáře s Pageable a mapování na DTO
         Page<PersonEntity> personsPage = personRepository.findByHidden(false, pageable);
         return personsPage.map(personMapper::toDTO);
     }
 
-    // region: Private methods
-    /**
-     * <p>Attempts to fetch a person.</p>
-     * <p>In case a person with the passed [id] doesn't exist a [{@link org.webjars.NotFoundException}] is thrown.</p>
-     *
-     * @param id Person to fetch
-     * @return Fetched entity
-     * @throws org.webjars.NotFoundException In case a person with the passed [id] isn't found
-     */
     private PersonEntity fetchPersonById(long id) {
         return personRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Person with id " + id + " wasn't found in the database."));
     }
-    // endregion
 
     @Override
     public PersonDTO getPerson(long personId) {
         return personMapper.toDTO(fetchPersonById(personId));
     }
 
+    // UPRAVENÁ METODA: Zachovává původní logiku, ale přidává kontrolu IČO.
     @Override
     @Transactional
     public PersonDTO editPerson(long personId, PersonDTO personDTO) {
+        // Načteme původní osobu z databáze
         PersonEntity originalPerson = fetchPersonById(personId);
+
+        // KLÍČOVÁ KONTROLA: Zabráníme změně IČO
+        if (!originalPerson.getIdentificationNumber().equals(personDTO.getIdentificationNumber())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Změna IČO u existující osoby není povolena.");
+        }
+
+        // Zbytek tvé původní správné logiky, která uchovává historii:
+        // 1. Skryjeme původní entitu
         originalPerson.setHidden(true);
         personRepository.save(originalPerson);
 
+        // 2. Vytvoříme a uložíme novou entitu s novými daty, ale se stejným IČO
         PersonEntity newPerson = personMapper.toEntity(personDTO);
-        newPerson.setId(null);
+        newPerson.setId(null); // Zajistíme, že se vytvoří nový záznam
         newPerson = personRepository.save(newPerson);
+
+        // 3. Vrátíme DTO nové entity
         return personMapper.toDTO(newPerson);
     }
 
-//    @Override
-//    public List<PersonStatisticsDTO> getPersonStatistics() {
-//        // Voláme nativní query z PersonRepository
-//        return personRepository.getPersonRevenueStatistics();
-//    }
-
-    // ZMĚNA: Vrací Page a přijímá Pageable
     @Override
     public Page<PersonStatisticsDTO> getPersonStatistics(Pageable pageable) {
         return personRepository.getPersonRevenueStatistics(pageable);
@@ -123,23 +112,21 @@ public class PersonServiceImpl implements PersonService {
     @Override
     public PersonLookup getPersonLookupById(Long id) {
         return personRepository.findById(id)
-                .map(person -> {
-                    return new PersonLookup() {
-                        @Override
-                        public Long getId() {
-                            return person.getId();
-                        }
+                .map(person -> new PersonLookup() {
+                    @Override
+                    public Long getId() {
+                        return person.getId();
+                    }
 
-                        @Override
-                        public String getName() {
-                            return person.getName();
-                        }
+                    @Override
+                    public String getName() {
+                        return person.getName();
+                    }
 
-                        @Override
-                        public String getIdentificationNumber() {
-                            return person.getIdentificationNumber();
-                        }
-                    };
+                    @Override
+                    public String getIdentificationNumber() {
+                        return person.getIdentificationNumber();
+                    }
                 })
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Osoba s ID " + id + " nebyla nalezena."));
     }
