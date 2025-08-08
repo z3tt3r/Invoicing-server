@@ -1,6 +1,7 @@
 package cz.itnetwork.service;
 
 import cz.itnetwork.dto.PersonDTO;
+import cz.itnetwork.dto.PersonFilterDTO;
 import cz.itnetwork.dto.PersonStatisticsDTO;
 import cz.itnetwork.entity.PersonLookup;
 import org.springframework.data.domain.Page; // Přidán import pro Page
@@ -31,7 +32,7 @@ public interface PersonService {
      *
      * @return List of all non-hidden persons
      */
-    List<PersonDTO> getAll();
+//    List<PersonDTO> getAll();
 
     /**
      * Fetches a paginated list of all non-hidden persons.
@@ -39,7 +40,7 @@ public interface PersonService {
      * @param pageable Pagination and sorting information
      * @return Page of non-hidden persons
      */
-    Page<PersonDTO> getPersons(Pageable pageable); // NOVÁ METODA PRO STRÁNKOVÁNÍ
+//    Page<PersonDTO> getPersons(Pageable pageable);
 
     PersonDTO getPerson(long personId);
 
@@ -49,7 +50,18 @@ public interface PersonService {
 
     Page<PersonStatisticsDTO> getPersonStatistics(Pageable pageable);
 
+    // NOVÁ METODA pro stránkovaný seznam "lehkých" objektů
+    Page<PersonLookup> getPersonsLookup(Pageable pageable);
+
+    // PŮVODNÍ METODA pro nepaginovaný seznam k výběru
     List<PersonLookup> getAllPersonsLookup();
 
     PersonLookup getPersonLookupById(Long id);
+
+    /**
+     * Získá seznam všech unikátních osob (kupujících a prodejců) z faktur.
+     *
+     * @return Seznam DTO s id a názvem osob.
+     */
+    List<PersonFilterDTO> getInvoiceRelatedPersons();
 }

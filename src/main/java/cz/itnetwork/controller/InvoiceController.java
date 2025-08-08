@@ -30,18 +30,19 @@ public class InvoiceController {
         return invoiceService.addInvoice(invoiceDTO);
     }
 
-    // *** NOVÝ ENDPOINT PRO STRÁNKOVÁNÍ a FILTROVÁNÍ ***
+    // *** Zde je opravená metoda, která je nezbytná ***
     @GetMapping("/summary")
     public Page<InvoiceSummary> getInvoicesSummary(
             @PageableDefault(size = 20) Pageable pageable,
-            @RequestParam(required = false) Long buyerId,
-            @RequestParam(required = false) Long sellerId,
+            // Změněno z Long na String, aby odpovídalo frontendu a URL parametrům
+            @RequestParam(required = false) String buyerId,
+            // Změněno z Long na String
+            @RequestParam(required = false) String sellerId,
             @RequestParam(required = false) String product,
             @RequestParam(required = false) BigDecimal minPrice,
             @RequestParam(required = false) BigDecimal maxPrice,
             @RequestParam(required = false) Integer limit) {
 
-        // Pokud je zadán limit, vytvoříme nový Pageable objekt s omezenou velikostí stránky.
         Pageable finalPageable = (limit != null && limit > 0) ? Pageable.ofSize(limit).withPage(pageable.getPageNumber()) : pageable;
 
         return invoiceService.getFilteredInvoiceSummaries(finalPageable, buyerId, sellerId, product, minPrice, maxPrice);

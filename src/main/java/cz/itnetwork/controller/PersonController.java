@@ -1,6 +1,7 @@
 package cz.itnetwork.controller;
 
 import cz.itnetwork.dto.PersonDTO;
+import cz.itnetwork.dto.PersonFilterDTO;
 import cz.itnetwork.dto.PersonStatisticsDTO;
 import cz.itnetwork.entity.PersonLookup;
 import cz.itnetwork.service.PersonService;
@@ -31,9 +32,15 @@ public class PersonController {
     //     return personService.getAll();
     // }
 
+    // vracelo cele DTO - pro seznam nepotrbne, zvazit smazani
+//    @GetMapping("/persons")
+//    public Page<PersonDTO> getPersons(@PageableDefault(size = 20) Pageable pageable) {
+//        return personService.getPersons(pageable);
+//    }
+
     @GetMapping("/persons")
-    public Page<PersonDTO> getPersons(@PageableDefault(size = 20) Pageable pageable) {
-        return personService.getPersons(pageable);
+    public Page<PersonLookup> getPersons(@PageableDefault(size = 20) Pageable pageable) {
+        return personService.getPersonsLookup(pageable); // Volání nové servisní metody
     }
 
 //    @GetMapping("/persons/statistics")
@@ -72,5 +79,14 @@ public class PersonController {
     @GetMapping("/persons/lookup/{id}")
     public PersonLookup getPersonLookupById(@PathVariable Long id) {
         return personService.getPersonLookupById(id);
+    }
+
+    /**
+     * Nový endpoint pro získání seznamu všech osob (kupujících a prodejců) pro filtrování faktur.
+     * Tento endpoint vrátí seznam DTO objektů s id a názvem.
+     */
+    @GetMapping("/persons/invoice-related")
+    public List<PersonFilterDTO> getInvoiceRelatedPersons() {
+        return personService.getInvoiceRelatedPersons();
     }
 }

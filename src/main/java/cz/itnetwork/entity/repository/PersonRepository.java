@@ -16,7 +16,10 @@ public interface PersonRepository extends JpaRepository<PersonEntity, Long> {
 
     List<PersonEntity> findByHidden(boolean hidden);
 
-    Page<PersonEntity> findByHidden(boolean hidden, Pageable pageable);
+    Page<PersonLookup> findByHidden(boolean hidden, Pageable pageable);
+
+    // Stara metoda pro celou entitu -zvazit smazani
+    // Page<PersonEntity> findByHidden(boolean hidden, Pageable pageable);
 
     List<PersonEntity> findByIdentificationNumber(String identificationNumber);
 
