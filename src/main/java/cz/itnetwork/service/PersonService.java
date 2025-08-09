@@ -4,64 +4,76 @@ import cz.itnetwork.dto.PersonDTO;
 import cz.itnetwork.dto.PersonFilterDTO;
 import cz.itnetwork.dto.PersonStatisticsDTO;
 import cz.itnetwork.entity.PersonLookup;
-import org.springframework.data.domain.Page; // Přidán import pro Page
-import org.springframework.data.domain.Pageable; // Přidán import pro Pageable
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 
 public interface PersonService {
 
     /**
-     * Creates a new person
-     *
-     * @param personDTO Person to create
-     * @return newly created person
+     * Creates a new person.
+     * @param personDTO Person to create.
+     * @return newly created person.
      */
     PersonDTO addPerson(PersonDTO personDTO);
 
     /**
-     * <p>Sets hidden flag to true for the person with the matching [id]</p>
-     * <p>In case a person with the passed [id] isn't found, the method <b>silently fails</b></p>
-     *
-     * @param id Person to delete
+     * <p>Sets a person's 'hidden' flag to true.</p>
+     * <p>In case a person with the passed [id] isn't found, the method <b>silently fails</b>.</p>
+     * @param id The ID of the person to "remove".
      */
     void removePerson(long id);
 
     /**
-     * Fetches all non-hidden persons
-     *
-     * @return List of all non-hidden persons
+     * Fetches a detailed person by their ID.
+     * @param personId The ID of the person.
+     * @return The detailed person DTO.
      */
-//    List<PersonDTO> getAll();
-
-    /**
-     * Fetches a paginated list of all non-hidden persons.
-     *
-     * @param pageable Pagination and sorting information
-     * @return Page of non-hidden persons
-     */
-//    Page<PersonDTO> getPersons(Pageable pageable);
-
     PersonDTO getPerson(long personId);
 
+    /**
+     * Edits an existing person's information.
+     * A new person entity is created and the old one is hidden.
+     * The identification number (IČO) cannot be changed.
+     * @param personId The ID of the person to edit.
+     * @param personDTO The DTO with the updated person data.
+     * @return The DTO of the newly created person entity.
+     */
     PersonDTO editPerson(long personId, PersonDTO personDTO);
 
-//    List<PersonStatisticsDTO> getPersonStatistics();
-
+    /**
+     * Retrieves a paginated list of person statistics, including revenue.
+     * @param pageable Pagination and sorting information.
+     * @return A page of person statistics DTOs.
+     */
     Page<PersonStatisticsDTO> getPersonStatistics(Pageable pageable);
 
-    // NOVÁ METODA pro stránkovaný seznam "lehkých" objektů
+    /**
+     * Retrieves a paginated list of all non-hidden persons as lightweight lookup objects.
+     * This method is optimized for listing purposes.
+     * @param pageable Pagination information.
+     * @return A page of person lookup objects.
+     */
     Page<PersonLookup> getPersonsLookup(Pageable pageable);
 
-    // PŮVODNÍ METODA pro nepaginovaný seznam k výběru
+    /**
+     * Retrieves a list of all non-hidden persons as lightweight lookup objects.
+     * This is useful for populating dropdowns or autocomplete fields.
+     * @return A list of person lookup objects.
+     */
     List<PersonLookup> getAllPersonsLookup();
 
+    /**
+     * Retrieves a single person lookup object by its ID.
+     * @param id The ID of the person to retrieve.
+     * @return The person lookup object.
+     */
     PersonLookup getPersonLookupById(Long id);
 
     /**
-     * Získá seznam všech unikátních osob (kupujících a prodejců) z faktur.
-     *
-     * @return Seznam DTO s id a názvem osob.
+     * Gets a list of all unique persons (buyers and sellers) from invoices.
+     * @return A list of DTOs with person IDs and names.
      */
     List<PersonFilterDTO> getInvoiceRelatedPersons();
 }
